@@ -1,0 +1,169 @@
+---
+title: "Análise de comentários de pesquisas"
+author: "Diego Maciel Geronimo"
+date: "15/02/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+options(digits = 2)
+options(fig.height = 1)
+options(fig.width = 2)
+
+set.seed(1990)
+
+#https://operdata.com.br/blog/pln-processamento-de-linguagem-natural/#top
+
+# Carregar bibliotecas
+foo <- function(x) {
+   for (i in x) {
+      if (!require(i , character.only = TRUE)) {
+         install.packages(i , dependencies = TRUE)
+         require(i , character.only = TRUE)
+      }
+   }
+}
+foo(c("tm" , "wordcloud" , "tidyverse", "stringr",
+      "dplyr", "knitr", "readxl", "ggplot2"))
+```
+
+```{r funcao, echo=FALSE, message=FALSE, warning=FALSE}
+analise_palavras <- function(texto, titulo) {
+   # Transformando os textos em um corpus
+   corpus <- VCorpus(VectorSource(texto))
+   
+   # Realizando a limpeza do corpus
+   corpus <-
+      tm_map(corpus,
+             content_transformer(function(x)
+                iconv(x, from = 'UTF-8', to = 'ASCII//TRANSLIT'))) %>%
+      tm_map(content_transformer(tolower)) %>%
+      tm_map(removePunctuation) %>%
+      tm_map(removeWords, stopwords("portuguese")) %>%
+      tm_map(removeWords, stopwords("spanish")) %>%
+      tm_map(removeWords, stopwords("english")) %>%
+      tm_map(
+         removeWords,
+         c("loja","lojas","recursos","nao","ter","empresa",
+           "ser","trabalho","colaboradores","ainda",
+           "precisamos","acredito","sao","melhor",
+           "fazer","precisa","cada","pois","vezes",
+           "tambem","alguns","hoje","exemplo","muitas",
+           "falta","melhorar","melhoria","sempre",
+           "assim","acho","poderiam","poderia",
+           "maior","vez","porem","principalmente","pode",
+           "forma", "deveria", "algumas",
+           "tudo","pouco", "estao", "dia", "pra", "bem",
+           "dentro", "ate", "parte", "muitos", "onde",
+           "vejo", "alem", "faz", "sinto", "renner", 
+           "trabalhar", "aqui", "menos", "bom", "outros",
+           "deveriam", "anos", "mim", "boa", "gosto",
+           "lugar", "area", "certeza", "bastante", "quanto",
+           "oferece", "camicado", "youcom", "realize",
+           "fato", "atraiu", "atencao", "querer", "otima",
+           "voce", "otimo", "busca", "torna", "dar",
+           "dias", "todas", "melhores", "grande",
+           "junto", "traz", "novos", "muita", "demais",
+           "entendo", "sendo", "gera", "novas", "fez", 
+           "posso", "mes", "etc", "boas", "permite",
+           "mostrar", "fim", "vem", "outras", "aspecto",
+           "buscar", "ashua", "ano", "vim", "faco", "chamou",
+           "desse", "achei", "otimos", "creio", "serem",
+           "deve", "deixa", "talvez", "ver", "outro",
+           "nome", "quis", "toda", "possui", "fazendo",
+           "agora", "recebo", "receber", "ganho", "ganhar",
+           "discordo", "manter", "fica", "embora", "devido",
+           "consigo", "apenas", "falando", "saber", "precisam"
+         )
+      )
+   
+   
+   # Lista de cores em hexadecimal
+   paleta <- brewer.pal(8, "Dark2")
+   
+   # Criando uma nuvem de palavras, com no máximo 100 palavras
+   # onde tenha se repetido ao menos 2 vezes.
+   wordcloud(
+      corpus,
+      min.freq = 2,
+      max.words = 20,
+      rot.per = 0,
+      scale = c(2, .5),
+      colors = paleta
+   )
+   
+   
+   # Criando uma matriz de termos
+   document <- DocumentTermMatrix(corpus)
+   
+   # Removendo os termos menos frequentes
+   #doc <- removeSparseTerms(document,0.95)
+   doc <- document
+   
+   # Gerando uma matrix ordenada, com o termos mais frequentes
+   freq <-
+      doc %>%
+      as.matrix() %>%
+      colSums() %>%
+      sort(decreasing = T)
+   
+   # Criando um dataframe com as palavras mais frequentes
+   df <- data.frame(word = names(freq),
+                    freq = freq)
+   
+   
+   # Gerando um gráfico da frequência
+   p <- df %>%
+      #filter(!word %in% c("nao", "ter")) %>%
+      subset(freq > 3) %>%
+      ggplot(aes(x = reorder(word, freq),
+                 y = freq)) +
+      geom_bar(stat = "identity",
+               fill = '#0c6cad',
+               color = "#075284") +
+      theme(axis.text.x = element_text(angle = 45, hjus = 1)) +
+      #ggtitle(titulo) +
+      labs(y = "Frequência", x = "Termos") +
+      coord_flip()
+   print(p)
+   
+
+   # Removendo os termos menos frequentes
+   doc1 <- removeSparseTerms(document, 0.95)
+   #doc1 <- document
+                             
+   # Clustering 1 = Dendograma
+   distancia <- dist(t(doc1), method = "euclidian")
+   dendograma <- hclust(d = distancia, method = "complete")
+   plot(dendograma,
+        hang = -1,
+        #main = titulo,
+        #xlab = "Semelhança",
+        ylab = "Semelhança")
+   
+   # Amostra do texto
+   print("Amostra de comentários:")
+   texto %>% sample(size = 10, replace = TRUE) %>% print()
+}
+
+```
+
+
+```{r bases, message=FALSE, warning=FALSE, include=FALSE}
+base_q1 <- read_excel("bases/base_em_excel.xlsx")
+```
+
+
+## Analise bloco 1
+```{r echo=FALSE}
+q1 <- base_q1$`Coluna 1`
+q1 <- q1 %>% unique()
+texto = q1 
+titulo = "Qualidade de Vida"
+analise_palavras(texto, titulo)
+```
+
+
+
