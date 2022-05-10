@@ -1,0 +1,185 @@
+######################### Qui-quadrado de independência #########################
+
+
+# Passo 1: Carregar os pacotes que serão usados
+
+if(!require(dplyr)) install.packages("dplyr") 
+library(dplyr)
+if(!require(rstatix)) install.packages("rstatix") 
+library(rstatix)
+if(!require(psych)) install.packages("psych") 
+library(psych)
+if(!require(corrplot)) install.packages("corrplot") 
+library(corrplot)
+if(!require(readxl)) install.packages("readxl") 
+library(readxl)
+if(!require(data.table)) install.packages("data.table") 
+library(data.table)
+options(scipen=999)
+
+# Passo 2: Carregamento do banco de dados e montagem do modelo
+
+
+############ Primeira opção: banco já no formato de tabela de contingência ############
+
+# Carregamento do Banco
+
+#dadosC <- read.csv2('Banco de Dados 9.2 Contingencia.csv', row.names = 1)
+
+
+#View(dadosC)                                # Visualização dos dados em janela separada
+#glimpse(dadosC)                             # Visualização de um resumo dos dados
+
+
+# Realização do teste de Qui-quadrado
+
+#quiqua1 <- chisq.test(dadosC)
+#quiqua1
+
+
+#######################################################################################
+######################## Segunda opção: banco no formato padrão #######################
+
+# Carregamento do Banco
+
+base <- read_excel("Bases/base_sla_rs.xlsx")
+
+setDT(base)
+
+# Prepara os dados de SLA por grupo de cargo
+base[,
+     sla := ifelse(
+       `grupo de cargo` == "Executivos" |
+         `grupo de cargo` == "Gerência",
+       60,
+       ifelse(
+         `grupo de cargo` == "Coordenação",
+         50,
+         ifelse(
+           `grupo de cargo` == "Supervisores" |
+             `grupo de cargo` == "Téc. Especializados" |
+             `grupo de cargo` == "Expert",
+           45,
+           ifelse(
+             `grupo de cargo` == "Técnicos" |
+               `grupo de cargo` == "Administrativos" |
+               `grupo de cargo` == "Operacionais",
+             30,
+             NA
+           )
+         )
+       )
+     )]
+
+base[,
+     tempo := ifelse(TTF <= (0.5 * sla), "<= 1/2 SLA",
+                     ifelse(TTF <= sla, "<= SLA",
+                            ifelse(TTF > sla, "> SLA",
+                                   NA)))]
+
+# Filtra valores de TTF negativos e acima de um ano
+base <- dplyr::filter(base, TTF >= 0 &  TTF < 360)
+
+base$tempo <- factor(base$tempo, levels = c("<= 1/2 SLA", "<= SLA", "> SLA"))
+
+
+# prepara os dados de performance
+base[,
+     perf := ifelse(perf_ciclo8 %in% c("Pode Mais", "Precisa Agir"),
+                    "PM ou PA",
+                    perf_ciclo8)]
+
+base$perf <- factor(base$perf, levels = c("PM ou PA", "Faz Bonito", "Muda o Jogo"))
+
+
+dados <- base %>%
+  select(tempo, perf) %>% 
+  na.omit()
+
+glimpse(dados)                             # Visualização de um resumo dos dados
+
+
+# Realização do teste de Qui-quadrado
+
+## Criação da tabela de contingência
+tabela <- table(dados$tempo, dados$perf)
+tabela
+
+## Realização do modelo
+
+quiqua2 <- chisq.test(tabela)
+quiqua2
+
+
+
+### Em tabelas 2x2: "correct = TRUE" ativa a correção de Yates
+
+
+
+# Passo 3: Análise das frequências esperadas
+## Pressuposto: frequências esperadas > 5 (ou no máximo em 20% das células)
+##              se não atender, usar o chi com a correção de Fisher
+
+quiqua2$expected
+
+
+
+# Passo 4: Análise dos resíduos padronizados ajustados
+
+## Resíduo padronizado (SPSS) - resíduos de Pearson:
+quiqua2$residuals
+
+
+## Resíduo padronizado ajustado (SPSS):
+quiqua2$stdres
+
+
+## Resíduo padronizado ajustado > 1,96 ou < -1,96 -- alfa de 5%
+
+
+# Passo 5: Cálculo do ponto de corte para os resíduos padronizados
+
+## Calcular o novo alfa:
+### Sendo "l" o número de linhas e "c" o número de colunas
+### Dividiremos o 0,05 pelo produto c*l (número de células)
+
+novoalfa <- 0.05/(3*3)
+novoalfa
+
+novoalfa <- 0.05/(nrow(tabela)*ncol(tabela))
+
+
+## Calcular o ponto de corte, com base no novo alfa:
+### A divisão por dois é por ser bicaudal
+
+qnorm(novoalfa/2)
+
+### Resíduos significativos: > 2,64 ou < -2,64 -- novo alfa: 0,008
+
+
+# Passo 6 (opcional): Cálculo do p para os resíduos
+
+round(2*(1-pnorm(abs(quiqua2$stdres))),2)
+
+## Devem ser comparados com o novo alfa: 0,008
+
+
+# Passo 7: Tamanho de efeito - V de Cramer
+
+cramer_v(tabela)
+
+## A interpretação depende dos graus de liberdade:
+## gl = (linhas-1) * (colunas-1)
+## Nesse caso: gl = 2 e o V de Cramer corresponde a um tamanho de efeito pequeno (Cohen, 1988)
+
+
+### Para tabelas 2 x 2:
+# phi(tabela)
+
+
+
+# Passo 8: Representação visual dos resíduos ajustados
+
+corrplot(quiqua2$stdres, is.cor = FALSE,
+         method = "color",
+         tl.col = "black", tl.srt = 0)
