@@ -1,5 +1,15 @@
 # CALCULAR DISTANCIA ENTRE LOCAIS USANDO A API DO GOOGLE MAPS
 
+# Materiais de apoio
+#https://cran.rstudio.com/web/packages/mapsapi/vignettes/intro.html
+#https://developers.google.com/maps/documentation/distance-matrix/usage-and-billing
+
+# Restrições
+#Maximum of 25 origins or 25 destinations per request.
+#Maximum 100 elements per server-side request.
+#Maximum 100 elements per client-side request.
+#1000 elements per second (EPS)
+
 # Instala e carrega as bibliotecas
 #install.packages("mapsapi")
 #install.packages("remotes")
