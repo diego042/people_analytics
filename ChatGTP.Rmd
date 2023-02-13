@@ -1,0 +1,108 @@
+---
+title: "ChatGPT"
+author: "People Analytics"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages("remotes", repos = "https://cloud.r-project.org")
+#remotes::install_github("jcrodriguez1989/chatgpt")
+
+library(readxl)
+library(dplyr)
+library(chatgpt)
+
+
+# Coleta chave da API no disco C
+Sys.setenv(
+OPENAI_API_KEY = 
+  read_excel("C:/Users/xxxx/secrets.xlsx") |> 
+  filter(service == "chatgpt") |> 
+  select(senha) |> 
+  as.character()
+)
+```
+
+
+
+## Referências
+
+### Documentação da biblioteca
+
+<https://github.com/jcrodriguez1989/chatgpt>
+
+
+### ChatGPT parâmetros pra mexer
+
+<https://platform.openai.com/docs/api-reference/completions/create>
+
+
+### Features
+
+The {chatgpt} R package provides a set of features to assist in R coding. Current existing addins:
+
+-   Ask ChatGPT: Opens an interactive chat session with ChatGPT
+-   Comment selected code: Comment the selected code
+-   Create variable name: Create a name for a variable that would be assigned the result of this code
+-   Document code (in roxygen2 format): Document a function definition, in roxygen2 format
+-   Explain selected code: Explain the selected code
+-   Find issues in the selected code: Find issues in the selected code
+-   Optimize selected code: Optimize the selected code
+-   Refactor selected code: Refactor the selected code
+
+*Note: When no code is selected, it will use the whole file's code.*
+
+
+
+## Exemplos de código
+
+```{r comentar_codigo}
+cat(comment_code(
+  "for (i in 1:10) {\n  print(i ** 2)\n}"
+  ))
+```
+
+```{r documentar_codigo}
+cat(document_code(
+  "square_numbers <- function(numbers) numbers ** 2"
+  ))
+```
+
+```{r explicar_codigo}
+cat(explain_code(
+  "for (i in 1:10) {\n  print(i ** 2)\n}"
+  ))
+```
+
+```{r achar_problemas_no_codigo}
+cat(find_issues_in_code(
+  "i <- 0\nwhile (i < 0) {\n  i <- i - 1\n}"
+  ))
+```
+
+```{r nomear_funcoes}
+cat(create_variable_name(
+  "sapply(1:10, function(i) i ** 2)"
+  ))
+```
+
+```{r otimizar_codigo}
+cat(optimize_code(
+  "i <- 10\nwhile (i > 0) {\n  i <- i - 1\n  print(i)\n}"
+  ))
+```
+
+```{r testar_funcoes}
+cat(create_unit_tests(
+  "squared_numbers <- function(numbers) {\n  numbers ^ 2\n}"
+  ))
+```
+
+```{r refatorar_codigo}
+cat(refactor_code(
+  "i <- 10\nwhile (i > 0) {\n  i <- i - 1\n  print(i)\n}"
+  ))
+```
