@@ -27,17 +27,17 @@ OPENAI_API_KEY =
 ```
 
 
-
 ## Referências
 
 ### Documentação da biblioteca
-
 <https://github.com/jcrodriguez1989/chatgpt>
 
+### Link para gerar chave de acesso à API
+<https://platform.openai.com/account/api-keys>
 
 ### ChatGPT parâmetros pra mexer
-
 <https://platform.openai.com/docs/api-reference/completions/create>
+
 
 
 ### Features
