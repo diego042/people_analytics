@@ -1,0 +1,346 @@
+#############################
+#Gerar pdf Google Sheets (gerarPDF)
+#############################
+function gerarPDFp4p() {
+
+  var dataAux = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("AUX"); // Aba onde esta os link das Pastas
+  const abacarta = dataAux.getRange("D6").getValue(); // Nome da aba que será usada como modelo para o PDF
+  const pastaPdf = dataAux.getRange("D3").getValue(); //pasta do doogle drive que os arquivos serão salvos
+
+  var dataBase = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Base_Dados"); //aba com a base de dados
+  var detalhado = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(abacarta); 
+  
+  var valoresColunaC = dataBase.getRange("D:D").getValues();
+  var linhaAtual = 3;
+  var T = 0;
+
+  //while vai rodar até econtrar uma linha em branco, lógica útil para testes ou quanod precisar rodar somente algumas linhas
+  while (valoresColunaC[linhaAtual-1][0] !== "") {
+
+    var nomeFuncionario = dataBase.getRange("D"+linhaAtual).getValue(); //armazena nome  ou id de funcionário para colar na aba de PDF que contem senha apontando para a base de dados, assim não precisamos colar tods as informações.
+    detalhado.getRange("C3").setValue(nomeFuncionario);
+    var employeeName = nomeFuncionario
+    var nomeFuncionario = dataBase.getRange("D"+linhaAtual).getValue();
+
+    var nomeArquivo = dataBase.getRange("AT"+linhaAtual).getValue();
+
+
+    //var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    //var abaExportar = planilha.getSheetByName('Base_Dados');
+    
+ 
+    // Seleciona área e gera o PDF
+    var intervalo = 'B2:O71';
+    var aba = abacarta;
+    var pasta = pastaPdf;
+
+
+    // Chamar a função para gerar o PDF
+    var pdf = gerarPDF(intervalo, aba, pasta,nomeArquivo);  
+
+    // Escrever o nome e o endereço na célula A2;
+    end_pdf = pdf.getId()
+    dataBase.getRange("AU" + linhaAtual).setValue(end_pdf); //<<<salva id!!!
+
+    //Esperar para gerar o proximo arquivo: Opcional dependendo da velocidade da rede
+    Utilities.sleep(3500);
+    
+       
+    linhaAtual++;
+   } // fim While
+
+
+  // Mostrar o nome e o ID do PDF criado
+  Logger.log('PDF criado: ' + pdf.getName() + ' (' + pdf.getId() + ')');
+
+  SpreadsheetApp.getUi().alert('Arquivos enviados', 'Dados copiados com sucesso.', SpreadsheetApp.getUi().ButtonSet.OK)
+
+}
+
+
+// Função para gerar um PDF!!!
+function gerarPDF(intervalo, aba, pasta,nomeArquivo) {
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+  var planilhaId = planilha.getId();
+  
+  var aba = planilha.getSheetByName(aba);
+  var abaId = aba.getSheetId();
+  
+  // URL para exportar o intervalo como PDF
+  var url = 'https://docs.google.com/spreadsheets/d/' + planilhaId + '/export?exportFormat=pdf&format=pdf' +
+    '&gid=' + abaId + // ID da aba
+    '&id=' + planilhaId + // ID da planilha
+    '&range=' + intervalo + // Intervalo a ser exportado
+    '&size=3.8x3.7501' + // Tamanho do papel
+    '&portrait=true' + // Orientação do papel
+    '&fitw=true' + // Ajustar à largura
+    '&gridlines=false' + // Ocultar as linhas de grade
+    '&fzr=false'; // Não repetir as linhas congeladas
+  
+  // token de autorização do script
+  var token = ScriptApp.getOAuthToken();
+  
+  // Fazer uma requisição para a URL e obter o blob do PDF
+  //var response = UrlFetchApp.fetch(url, { headers: {
+  //    'Authorization': 'Bearer ' + token}
+
+  // Fazer uma requisição para a URL e obter o blob do PDF
+  var response = UrlFetchApp.fetch(url, {
+    headers: {
+      'Authorization': 'Bearer ' + token
+    },
+    muteHttpExceptions: true // Adicionar esse parâmetro
+  });
+  var blob = response.getBlob()
+
+
+  var blob = response.getBlob();
+  blob.setName(nomeArquivo)
+  
+  // Obter a pasta pelo ID e criar o arquivo PDF na pasta
+  var pasta = DriveApp.getFolderById(pasta);
+  var arquivo = pasta.createFile(blob);
+  
+  // Retornar o arquivo PDF criado
+  return arquivo
+  
+}
+
+
+
+#############################
+#enviar e-mail via gmail usando o google sheets (Enviar_email_Gmail_Sheets)
+#############################
+function enviar_email() {
+  
+  var planilha = SpreadsheetApp.getActiveSpreadsheet(); // planilha ativa
+  var dataBase = planilha.getSheetByName('Base_Dados'); // planilha base com as indo, deve ser a mesma que foi usada para gerar os pdf
+  
+  var valoresColunaC = dataBase.getRange("C:C").getValues();
+  var linhaAtual = 3;
+  var T=0;
+
+
+  while (valoresColunaC[linhaAtual-1][0] !== "") {
+    
+    var employeeName = dataBase.getRange("D"+linhaAtual).getValue();
+    var emailFuncionario = dataBase.getRange("AR"+linhaAtual).getValue(); //<--REMETENTE 
+    var employeeEmail = emailFuncionario;
+    var emailFuncionario = dataBase.getRange("AR"+linhaAtual).getValue(); //<-- (Repeti devido um bug no sheets não obrigatório) 
+    var remetente = dataBase.getRange("AS"+linhaAtual).getValue(); //<--Remetente
+   
+   // Copiar anexo:
+    var id = dataBase.getRange("AU"+linhaAtual).getValue(); //<----ID salvo pelo código de gerar pdf
+
+    
+    //var id = valor
+    //.match(/\((.*?)\)/)[1];
+    
+    // Obter o arquivo pelo ID
+    var anexo = DriveApp.getFileById(id);
+    
+      const destinationFolder = DriveApp.getFolderById('ID_Pasta_Drive')          //<- pasta com arquivo modelo
+    var docId = 'ID_Modelo_em_DOCs' //<-modelo do corpo do email doc
+    var name = employeeName
+
+    const htmlBody = htmlEmailBody(destinationFolder, docId, name)
+
+
+    var destinatario = employeeEmail; // e-mail desejado
+    var assunto = 'Extrato P4P 2023 | ' + name;
+    //var htmlBody = htmlBody;
+    
+    // Chamar a função para enviar o e-mail
+    enviarEmail(anexo, destinatario, assunto, htmlBody, remetente);     //<-- FUNÇÃO !!!
+
+    dataBase.getRange("AV" + linhaAtual).setValue("Enviado"); //<<<Cheeck
+
+    
+    linhaAtual++;
+    
+  } // fim do while
+
+  //SpreadsheetApp.getUi().alert('E-mails enviados', 'Emails com sucesso', SpreadsheetApp.getUi().ButtonSet.OK)
+  
+}     //<- Fim do Processo
+
+
+
+
+/*** Função enviar email ***/
+function enviarEmail(anexo, destinatario, assunto, htmlBody,remetente) {
+  // Obter o blob do anexo
+  var blob = anexo.getBlob();
+  
+  //htmlBody = htmlBody.replace(/<img src="([^"]+)"/, '<a href="https://www.google.com"><img src="$1"></a>');
+
+  // Enviar o e-mail com o anexo pelo Gmail: se for usar caixa departamental, voc~e deve estar logado com o usuário da caixa no google.
+
+  GmailApp.sendEmail(destinatario, assunto, 'Body', {
+    attachments: [blob],
+    htmlBody: htmlBody,
+    from: remetente
+  });
+
+}
+
+
+
+
+/*** Função html ***/
+function htmlEmailBody(destinationFolder, docId, name) {
+  const fileName = `Email - ${name}`
+
+  const newFile = DriveApp.getFileById(docId).makeCopy(fileName, destination=destinationFolder)
+  const newDoc = DocumentApp.openById(newFile.getId())
+  const docBody = newDoc.getBody()
+  
+  //docBody.replaceText("{NOME_COLABORADOR}", name)
+
+  newDoc.saveAndClose()
+
+  const url = `https://docs.google.com/feeds/download/documents/export/Export?id=${newDoc.getId()}&exportFormat=html`;
+  const param = {
+    method : 'get',
+    headers : {
+      'Authorization' : 'Bearer '+ ScriptApp.getOAuthToken()
+      },muteHttpExceptions: true};
+  let html = UrlFetchApp.fetch(url,param).getContentText();
+  html = html.replace(/<head>.*<\/head>/, '');
+  html = html.replace(/(id|class|style|start|colspan|rowspan)="[^"]*"/g,'');
+  //html = html.replace(/<img src="([^"]+)"/, '<a href="https://www.google.com"><img src="$1"></a>');
+  
+  html = html.replace(/<(span|\/span|body|\/body|html|\/html)>/g, '');
+ 
+  
+
+  DriveApp.getFileById(newDoc.getId()).setTrashed(true);
+
+  return html
+  
+  
+
+} 
+
+
+
+#############################
+#Ler arquivos e extensão em uma pasta do Drive (LerArquivosDrive)
+#############################
+function listarArquivosNaPlanilha() {
+  var pastaId = 'ID_Pasta'; // Pasta
+  var pasta = DriveApp.getFolderById(pastaId);
+  var arquivos = pasta.getFiles();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Aba_SalvarNomesArquvos'); //- Aba onde vai Salvar os Nomes dos Arquvos
+  
+  // Limpa a aba antes de adicionar novos dados
+  sheet.clear();
+  
+  // Adiciona cabeçalhos na planilha
+  sheet.appendRow(['ID do Arquivo', 'Nome do Arquivo','Tipo']);
+  
+  
+  while (arquivos.hasNext()) {
+    var arquivo = arquivos.next();
+    var id = arquivo.getId();
+    var nome = arquivo.getName();
+    var tipo = arquivo.getMimeType();
+    sheet.appendRow([id, nome,tipo]);
+  }
+}
+
+
+
+#############################
+#Ler conteúdo de um PDF no google drive (LerConteudoPDF)
+#############################
+function lerArquivosPDF() {
+  var pastaId = 'ID_Pasta'; //ID da sua pasta onde arquivos estão salvos
+  var pasta = DriveApp.getFolderById(pastaId);
+  var arquivos = pasta.getFilesByType(MimeType.PDF); //tipo do arquivo
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+  var aba = planilha.getSheetByName('LerPDFs'); //Pasta onde vai salvar o nome do arquivo e o conteúdo incial
+  var ultimaLinha = aba.getLastRow();
+  var ultimoArquivoProcessado = ultimaLinha > 1 ? aba.getRange(ultimaLinha, 1).getValue() : '';
+  var continuar = ultimoArquivoProcessado === '';
+  
+  while (arquivos.hasNext()) {
+    var arquivo = arquivos.next();
+    var nome = arquivo.getName();
+    if (nome === ultimoArquivoProcessado) {
+      continuar = true;
+    }
+    if (continuar) {
+      var blob = arquivo.getBlob();
+      var texto = '';
+      try {
+        texto = extractTextFromPDF(blob).substring(23, 60);  // "Range que desejo ler, o nome do funcionário esta após o 23 caracter" 
+      } catch(e) {
+        texto = 'Erro ao extrair texto: ' + e.message;
+      }
+      aba.appendRow([nome, texto]);
+    }
+  }
+}
+
+
+
+#############################
+#Gerar Menu Google Sheets (GerarMenu)
+#############################
+function onOpen(e) {
+
+  const menu = SpreadsheetApp.getUi().createMenu("Gerar PDF e Enviar")
+    menu
+      .addItem('Gerar PDF - p4p', 'gerarPDFp4p')
+      .addSeparator()
+      .addItem('Enviar E-mail - p4p', 'enviar_email_p4p')
+      .addSeparator()
+      .addItem('Ler nomes de PDFs','listarArquivosNaPlanilha')
+      .addSeparator()
+      .addItem('Ler conteúdo PDF' ,'lerArquivosPDF')
+      
+      .addToUi()
+}
+
+
+#############################
+#Criptografar PDF com Senha (CriptografarPDF)
+#############################
+#Criptografar PDF com Senha / 5 primeiros caráteres do nome do arquivo e salva em pasta de saída.
+
+#import pip 
+#pip.main(['install','PyPDF4'])
+
+
+from PyPDF4 import PdfFileWriter, PdfFileReader 
+
+import os
+
+lista_arquivos = os.listdir()
+
+for arquivo in lista_arquivos:
+    if ".pdf" in arquivo:
+                    
+        out = PdfFileWriter() 
+        file = PdfFileReader(arquivo) 
+        num = file.numPages 
+        
+        for idx in range(num): 
+        
+        
+                page = file.getPage(idx) 
+          
+        
+                out.addPage(page) 
+          
+                password = arquivo[0:5]
+                out.encrypt(password)
+                arquivo_out = arquivo.replace(password, "")
+                #arquivo_out = "saida\" + arquivo_out
+                pasta = "saida"
+        with open(pasta + "/" + arquivo_out, "wb") as f: 
+          
+            out.write(f)
