@@ -13,6 +13,17 @@ people_analytics/
 ├── notebooks/
 │   ├── README.md
 │   └── venn_diagrams_diversity.ipynb
+├── apps_script/
+│   ├── README.md
+│   ├── envio_cartas_sheets/   # Pasta específica para este projeto
+│   │   ├── README.md
+│   │   ├── envio_cartas_sheets.gs
+│   │   ├── gerar_pdf.gs
+│   │   ├── enviar_email_gmail.gs
+│   │   ├── ler_arquivos_drive.gs
+│   │   ├── ler_conteudo_pdf.gs
+│   │   ├── gerar_menu.gs
+│   │   ├── criptografar_pdf.py
 ├── r/
 │   ├── README.md
 │   └── ...
@@ -30,12 +41,15 @@ people_analytics/
 - **r/**: scripts em R para estatísticas, relatórios, etc.
 - **shell/**: automações em Shell (bash/zsh).
 - **powershell/**: automações para ambiente Windows.
+- **apps_script/**: Projetos de automação no Google Apps Script.
+  - 📁 **[`envio_cartas_sheets/`](apps_script/envio_cartas_sheets/)**: Gerar PDFs no Google Drive e enviá-los via Gmail automaticamente.
+
 
 ## Como usar
 
 1. Faça um clone do repositório:  
    ```bash
-   git clone https://github.com/seu-usuario/people_analytics.git
+   git clone https://github.com/diego042/people_analytics.git
 
 2. Entre na pasta que contém o tipo de script desejado (ex.: cd people_analytics/python).
 
