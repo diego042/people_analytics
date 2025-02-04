@@ -12,6 +12,7 @@ people_analytics/
 │   └── export_employee_data.py
 ├── notebooks/
 │   ├── README.md
+│   ├── eda_examples.ipynb
 │   └── venn_diagrams_diversity.ipynb
 ├── apps_script/
 │   ├── README.md
