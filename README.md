@@ -38,6 +38,8 @@ people_analytics/
 
 
 - **python/**: scripts em Python para diversas tarefas (coleta de dados, exportações, análises).
+  - 📍 **Cálculo de Distância Haversine** (`haversine_distance.py`) → Mede a distância entre coordenadas geográficas usando a fórmula de Haversine.
+
 - **notebooks/**: notebooks Jupyter para visualizações, análises interativas ou POCs.
 - **r/**: scripts em R para estatísticas, relatórios, etc.
 - **shell/**: automações em Shell (bash/zsh).

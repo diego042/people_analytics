@@ -35,3 +35,12 @@ Execução:
 python export_employee_data.py
 ```
 Observações: Requer permissões adequadas no Workplace, ajusta tempo de espera e caminho de salvamento conforme necessário.
+
+### 3 `haversine_distance.py` (📍 Cálculo de Distância Haversine)
+- **Descrição**: Calcula a distância geodésica entre dois pontos a partir de suas coordenadas geográficas.
+- **Bibliotecas**: `math`, `pyspark.sql.functions`
+- **Uso**:
+  ```python
+  from haversine_distance import haversine_distance
+  distancia = haversine_distance(-25.450108, -49.28545, -23.55031, -46.6342)
+  print(f"Distância: {distancia:.2f} km")
