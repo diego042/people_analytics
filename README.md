@@ -26,8 +26,8 @@ people_analytics/
 │   │   ├── gerar_menu.gs
 │   │   ├── criptografar_pdf.py
 ├── r/
-│   ├── README.md
-│   └── ...
+│   ├── calcular_distancia_google_maps.R
+│   └── README.md
 ├── shell/
 │   ├── README.md
 │   └── ...
@@ -41,7 +41,9 @@ people_analytics/
   - 📍 **Cálculo de Distância Haversine** (`haversine_distance.py`) → Mede a distância entre coordenadas geográficas usando a fórmula de Haversine.
 
 - **notebooks/**: notebooks Jupyter para visualizações, análises interativas ou POCs.
-- **r/**: scripts em R para estatísticas, relatórios, etc.
+- **r/**: scripts em R para análises estatísticas, relatórios, geográficas, etc.
+  - 📍 **Cálculo de Distância via Google Maps API** → Mede a distância entre localidades usando a API Distance Matrix.
+
 - **shell/**: automações em Shell (bash/zsh).
 - **powershell/**: automações para ambiente Windows.
 - **apps_script/**: Projetos de automação no Google Apps Script.
