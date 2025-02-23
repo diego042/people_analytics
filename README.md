@@ -7,9 +7,12 @@ Aqui você encontra soluções em Python, R, Shell, PowerShell e notebooks inter
 
 people_analytics/
 ├── python/
-│   ├── README.md
 │   ├── coleta_biblioteca_conhecimento.py
-│   └── export_employee_data.py
+│   ├── export_employee_data.py
+│   ├── gerar_base_rh_ficticia.py
+│   ├── haversine_distance.py
+│   └── README.md
+
 ├── notebooks/
 │   ├── README.md
 │   ├── eda_examples.ipynb
@@ -39,6 +42,8 @@ people_analytics/
 
 - **python/**: scripts em Python para diversas tarefas (coleta de dados, exportações, análises).
   - 📍 **Cálculo de Distância Haversine** (`haversine_distance.py`) → Mede a distância entre coordenadas geográficas usando a fórmula de Haversine.
+  - 📊 **Geração de Base Fictícia de RH** → Simula uma base de funcionários com cargos, salários e diversidade (`gerar_base_rh_ficticia.py`).
+
 
 - **notebooks/**: notebooks Jupyter para visualizações, análises interativas ou POCs.
 - **r/**: scripts em R para análises estatísticas, relatórios, geográficas, etc.
