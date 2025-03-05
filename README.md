@@ -43,6 +43,8 @@ people_analytics/
 - **python/**: scripts em Python para diversas tarefas (coleta de dados, exportações, análises).
   - 📍 **Cálculo de Distância Haversine** (`haversine_distance.py`) → Mede a distância entre coordenadas geográficas usando a fórmula de Haversine.
   - 📊 **Geração de Base Fictícia de RH** → Simula uma base de funcionários com cargos, salários e diversidade (`gerar_base_rh_ficticia.py`).
+  - 📊 **Dashboard Interativo de RH** → Visualização dinâmica de métricas de funcionários (`dashboard_rh.py`).
+
 
 
 - **notebooks/**: notebooks Jupyter para visualizações, análises interativas ou POCs.
